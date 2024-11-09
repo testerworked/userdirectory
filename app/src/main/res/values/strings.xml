@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">UserDirectory</string>
     <string name="app_view_name">User Directory</string>
+    <string name="save_button_text">Сохранить</string>
 </resources>
