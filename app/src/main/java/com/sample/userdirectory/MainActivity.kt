@@ -14,13 +14,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 
 class MainActivity : AppCompatActivity() {
-    /**
-     * Программа - Каталог Пользователей
-     */
-
-    private val userListSample = mutableListOf<User>()
+    private val userViewModel: UserViewModel by viewModels()
     private lateinit var adapterUsers: ArrayAdapter<User>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +34,14 @@ class MainActivity : AppCompatActivity() {
         val saveB = findViewById<Button>(R.id.bSave)
         val lvUsers = findViewById<ListView>(R.id.listViewUsers)
 
-        adapterUsers = ArrayAdapter(this, android.R.layout.simple_list_item_1, userListSample)
+        adapterUsers = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf())
         lvUsers.adapter = adapterUsers
+
+        userViewModel.userList.observe(this, Observer { users ->
+            adapterUsers.clear()
+            adapterUsers.addAll(users)
+            adapterUsers.notifyDataSetChanged()
+        })
 
         saveB.setOnClickListener {
             val name = nameEditT.text.toString()
@@ -45,8 +49,8 @@ class MainActivity : AppCompatActivity() {
 
             if (name.isNotEmpty() && age != null) {
                 val user = User(name, age)
-                userListSample.add(user)
-                adapterUsers.notifyDataSetChanged()
+                userViewModel.userList.value?.add(user)
+                userViewModel.userList.value = userViewModel.userList.value
                 nameEditT.text.clear()
                 ageEditT.text.clear()
             } else {
@@ -55,19 +59,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         lvUsers.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            val note = adapterUsers.getItem(position)
-            adapterUsers.remove(note)
-            adapterUsers.notifyDataSetChanged()
+            val userToRemove = userViewModel.userList.value?.get(position)
+            userViewModel.userList.value?.remove(userToRemove)
+            userViewModel.userList.value = userViewModel.userList.value
             Toast.makeText(this, "Пользователь удален", Toast.LENGTH_SHORT).show()
         }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -84,5 +81,4 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
 }
